@@ -1,0 +1,60 @@
+{
+  "plansDirectory": ".claude/plans",
+  "autoUpdatesChannel": "stable",
+  "minimumVersion": "2.1.20",
+  "permissions": {
+    "allow": [
+      "Read",
+      "Bash(python -c *)",
+      "Bash(python3 -c *)",
+      "Bash(uv run python -c *)",
+      "Bash(uv run python3 -c *)",
+      "Bash(find *)",
+      "Bash(grep *)",
+      "Bash(ls *)",
+      "Bash(xargs:*)",
+      "Bash(wc *)",
+      "Search",
+      "mcp__serena"
+    ],
+    "ask": [
+      "mcp__serena__replace_symbol_body"
+    ],
+    "defaultMode": "acceptEdits"
+  },
+  "hooks": {
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/slack-notify.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/slack-notify.sh"
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/slack-notify.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
