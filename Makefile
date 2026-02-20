@@ -1,7 +1,17 @@
-.PHONY: install uninstall
+.PHONY: install uninstall install-claude uninstall-claude install-agent-deck uninstall-agent-deck
 
-install:
+install: install-claude install-agent-deck
+
+uninstall: uninstall-claude uninstall-agent-deck
+
+install-claude:
 	@./claude-setting/symlink_install.sh
 
-uninstall:
+uninstall-claude:
 	@./claude-setting/symlink_uninstall.sh
+
+install-agent-deck:
+	@./agent-deck/symlink_install.sh
+
+uninstall-agent-deck:
+	@./agent-deck/symlink_uninstall.sh
