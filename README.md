@@ -5,7 +5,7 @@
 ## 구조
 
 ```
-claude-setting/
+claude-user-setting/
 ├── .env.example     # 환경변수 템플릿
 ├── .env.local       # 실제 환경변수 (gitignore)
 ├── hooks/           # Claude Code hooks
@@ -25,7 +25,7 @@ make install
 
 설치 후 환경변수 설정:
 ```bash
-vim claude-setting/.env.local
+vim claude-user-setting/.env.local
 ```
 
 ## 제거

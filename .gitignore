@@ -55,4 +55,4 @@ tmp/
 
 # Claude
 .claude/
-claude-setting/.env.local
+claude-user-setting/.env.local
