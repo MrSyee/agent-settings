@@ -1,0 +1,23 @@
+{
+  "skill_name": "pr-description",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "현재 브랜치에 대한 PR description 만들어줘",
+      "expected_output": "## 요약 (3줄 이내) + ## 작업 내역 (commit tag prefix 포함) 형식의 PR description",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "main 브랜치 기준으로 PR 작성해줘",
+      "expected_output": "main 브랜치와의 diff를 분석하여 ## 요약 + ## 작업 내역 형식으로 PR description 생성",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "이 브랜치의 PR body를 생성해줘. 변경사항을 요약해서 작성해줘.",
+      "expected_output": "git diff/log를 분석하고 commit tag 스타일의 작업 내역과 3줄 이내 요약을 포함한 PR description",
+      "files": []
+    }
+  ]
+}
