@@ -5,10 +5,10 @@ install: install-claude install-agent-deck
 uninstall: uninstall-claude uninstall-agent-deck
 
 install-claude:
-	@./claude-user-setting/symlink_install.sh
+	@./claude-user-setting/install.sh
 
 uninstall-claude:
-	@./claude-user-setting/symlink_uninstall.sh
+	@./claude-user-setting/uninstall.sh
 
 install-agent-deck:
 	@./agent-deck/symlink_install.sh

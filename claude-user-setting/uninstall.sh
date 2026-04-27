@@ -12,9 +12,9 @@ CLAUDE_DIR="$HOME/.claude"
 echo -e "${RED}Claude 설정 제거 스크립트${NC}"
 echo "================================"
 
-# 심볼릭 링크 제거
+# 파일/디렉토리 제거
 echo ""
-echo "심볼릭 링크 제거 중..."
+echo "설치된 파일 제거 중..."
 
 # hooks 링크 제거
 if [ -L "$CLAUDE_DIR/hooks" ]; then
@@ -23,17 +23,18 @@ if [ -L "$CLAUDE_DIR/hooks" ]; then
 elif [ -e "$CLAUDE_DIR/hooks" ]; then
     echo -e "  ${YELLOW}hooks/는 심볼릭 링크가 아닙니다. 건너뜁니다.${NC}"
 else
-    echo "  hooks/ 링크가 존재하지 않습니다."
+    echo "  hooks/가 존재하지 않습니다."
 fi
 
-# settings.json 링크 제거
+# settings.json 제거 (복사본이므로 삭제)
 if [ -L "$CLAUDE_DIR/settings.json" ]; then
     rm "$CLAUDE_DIR/settings.json"
     echo -e "  ${GREEN}✓${NC} settings.json 링크 제거됨"
-elif [ -e "$CLAUDE_DIR/settings.json" ]; then
-    echo -e "  ${YELLOW}settings.json은 심볼릭 링크가 아닙니다. 건너뜁니다.${NC}"
+elif [ -f "$CLAUDE_DIR/settings.json" ]; then
+    rm "$CLAUDE_DIR/settings.json"
+    echo -e "  ${GREEN}✓${NC} settings.json 제거됨"
 else
-    echo "  settings.json 링크가 존재하지 않습니다."
+    echo "  settings.json이 존재하지 않습니다."
 fi
 
 # .env 링크 제거
@@ -43,17 +44,18 @@ if [ -L "$CLAUDE_DIR/.env" ]; then
 elif [ -e "$CLAUDE_DIR/.env" ]; then
     echo -e "  ${YELLOW}.env는 심볼릭 링크가 아닙니다. 건너뜁니다.${NC}"
 else
-    echo "  .env 링크가 존재하지 않습니다."
+    echo "  .env가 존재하지 않습니다."
 fi
 
-# skills 링크 제거
+# skills 디렉토리 제거 (복사본이므로 삭제)
 if [ -L "$CLAUDE_DIR/skills" ]; then
     rm "$CLAUDE_DIR/skills"
     echo -e "  ${GREEN}✓${NC} skills/ 링크 제거됨"
-elif [ -e "$CLAUDE_DIR/skills" ]; then
-    echo -e "  ${YELLOW}skills/는 심볼릭 링크가 아닙니다. 건너뜁니다.${NC}"
+elif [ -d "$CLAUDE_DIR/skills" ]; then
+    rm -rf "$CLAUDE_DIR/skills"
+    echo -e "  ${GREEN}✓${NC} skills/ 디렉토리 제거됨"
 else
-    echo "  skills/ 링크가 존재하지 않습니다."
+    echo "  skills/가 존재하지 않습니다."
 fi
 
 # 백업 파일 복원

@@ -12,8 +12,21 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLAUDE_DIR="$HOME/.claude"
 BACKUP_SUFFIX=".backup.$(date +%Y%m%d_%H%M%S)"
 
+# 플래그 파싱
+INSTALL_WORK=false
+for arg in "$@"; do
+    case $arg in
+        --work) INSTALL_WORK=true ;;
+    esac
+done
+
 echo -e "${GREEN}Claude 설정 설치 스크립트${NC}"
 echo "================================"
+if [ "$INSTALL_WORK" = true ]; then
+    echo -e "  모드: ${YELLOW}work 스킬 포함${NC}"
+else
+    echo "  모드: common 스킬만"
+fi
 
 # 1. ~/.claude 디렉토리 확인/생성
 if [ ! -d "$CLAUDE_DIR" ]; then
@@ -21,16 +34,13 @@ if [ ! -d "$CLAUDE_DIR" ]; then
     mkdir -p "$CLAUDE_DIR"
 fi
 
-# 2. 기존 파일 백업
+# 2. 기존 파일 백업 및 처리
 echo ""
-echo "기존 파일 백업 중..."
+echo "기존 파일 처리 중..."
 
-# settings.json 백업
-if [ -e "$CLAUDE_DIR/settings.json" ] && [ ! -L "$CLAUDE_DIR/settings.json" ]; then
-    echo -e "  ${YELLOW}settings.json 백업 → settings.json${BACKUP_SUFFIX}${NC}"
-    mv "$CLAUDE_DIR/settings.json" "$CLAUDE_DIR/settings.json${BACKUP_SUFFIX}"
-elif [ -L "$CLAUDE_DIR/settings.json" ]; then
-    echo "  settings.json은 이미 심볼릭 링크입니다. 제거 후 재생성합니다."
+# settings.json — symlink면 제거, 일반 파일이면 유지(merge할 것임)
+if [ -L "$CLAUDE_DIR/settings.json" ]; then
+    echo "  settings.json 심볼릭 링크 제거 후 재생성합니다."
     rm "$CLAUDE_DIR/settings.json"
 fi
 
@@ -52,32 +62,68 @@ elif [ -L "$CLAUDE_DIR/hooks" ]; then
     rm "$CLAUDE_DIR/hooks"
 fi
 
-# skills 디렉토리 백업
-if [ -e "$CLAUDE_DIR/skills" ] && [ ! -L "$CLAUDE_DIR/skills" ]; then
-    echo -e "  ${YELLOW}skills/ 백업 → skills${BACKUP_SUFFIX}${NC}"
-    mv "$CLAUDE_DIR/skills" "$CLAUDE_DIR/skills${BACKUP_SUFFIX}"
-elif [ -L "$CLAUDE_DIR/skills" ]; then
-    echo "  skills/는 이미 심볼릭 링크입니다. 제거 후 재생성합니다."
+# skills — symlink면 제거, 일반 디렉토리면 유지(추가 복사할 것임)
+if [ -L "$CLAUDE_DIR/skills" ]; then
+    echo "  skills/ 심볼릭 링크 제거 후 디렉토리로 재생성합니다."
     rm "$CLAUDE_DIR/skills"
 fi
 
-# 3. 심볼릭 링크 생성
+# 3. hooks 심볼릭 링크 생성
 echo ""
 echo "심볼릭 링크 생성 중..."
 
-# hooks 디렉토리 링크
 ln -s "$SCRIPT_DIR/hooks" "$CLAUDE_DIR/hooks"
 echo -e "  ${GREEN}✓${NC} hooks/ → $SCRIPT_DIR/hooks"
 
-# settings.json 링크
-ln -s "$SCRIPT_DIR/settings.json" "$CLAUDE_DIR/settings.json"
-echo -e "  ${GREEN}✓${NC} settings.json → $SCRIPT_DIR/settings.json"
+# 4. settings.json — 기존 파일과 merge, 없으면 복사
+echo ""
+echo "settings.json 설정 중..."
 
-# skills 디렉토리 링크
-ln -s "$SCRIPT_DIR/skills" "$CLAUDE_DIR/skills"
-echo -e "  ${GREEN}✓${NC} skills/ → $SCRIPT_DIR/skills"
+if [ -f "$CLAUDE_DIR/settings.json" ]; then
+    if command -v jq &>/dev/null; then
+        echo "  기존 settings.json 발견 → jq로 merge합니다."
+        MERGED=$(jq -s '.[0] * .[1]' "$CLAUDE_DIR/settings.json" "$SCRIPT_DIR/settings.json")
+        echo "$MERGED" > "$CLAUDE_DIR/settings.json"
+        echo -e "  ${GREEN}✓${NC} settings.json merge 완료"
+    else
+        echo -e "  ${YELLOW}jq가 없습니다. 기존 settings.json을 백업하고 복사합니다.${NC}"
+        cp "$CLAUDE_DIR/settings.json" "$CLAUDE_DIR/settings.json${BACKUP_SUFFIX}"
+        cp "$SCRIPT_DIR/settings.json" "$CLAUDE_DIR/settings.json"
+        echo -e "  ${GREEN}✓${NC} settings.json 복사 완료 (백업: settings.json${BACKUP_SUFFIX})"
+    fi
+else
+    cp "$SCRIPT_DIR/settings.json" "$CLAUDE_DIR/settings.json"
+    echo -e "  ${GREEN}✓${NC} settings.json 복사 완료"
+fi
 
-# 4. .env.local 파일 설정
+# 5. skills 복사
+echo ""
+echo "skills 복사 중..."
+
+rm -rf "$CLAUDE_DIR/skills"
+mkdir -p "$CLAUDE_DIR/skills"
+
+# common 스킬 복사 (항상)
+if [ -d "$SCRIPT_DIR/skills/common" ]; then
+    cp -r "$SCRIPT_DIR/skills/common"/. "$CLAUDE_DIR/skills/"
+    COMMON_COUNT=$(ls "$SCRIPT_DIR/skills/common" | wc -l | tr -d ' ')
+    echo -e "  ${GREEN}✓${NC} common 스킬 ${COMMON_COUNT}개 복사 완료"
+else
+    echo -e "  ${YELLOW}skills/common 디렉토리가 없습니다. 건너뜁니다.${NC}"
+fi
+
+# work 스킬 복사 (--work 플래그 시)
+if [ "$INSTALL_WORK" = true ]; then
+    if [ -d "$SCRIPT_DIR/skills/work" ]; then
+        cp -r "$SCRIPT_DIR/skills/work"/. "$CLAUDE_DIR/skills/"
+        WORK_COUNT=$(ls "$SCRIPT_DIR/skills/work" | wc -l | tr -d ' ')
+        echo -e "  ${GREEN}✓${NC} work 스킬 ${WORK_COUNT}개 복사 완료"
+    else
+        echo -e "  ${YELLOW}skills/work 디렉토리가 없습니다. 건너뜁니다.${NC}"
+    fi
+fi
+
+# 6. .env.local 파일 설정
 echo ""
 echo "환경변수 파일 설정 중..."
 
@@ -89,14 +135,13 @@ else
     echo "  .env.local이 이미 존재합니다."
 fi
 
-# .env.local을 ~/.claude/.env로 심볼릭 링크
 ln -s "$SCRIPT_DIR/.env.local" "$CLAUDE_DIR/.env"
 echo -e "  ${GREEN}✓${NC} ~/.claude/.env → $SCRIPT_DIR/.env.local"
 
-# 5. 실행 권한 설정
+# 7. 실행 권한 설정
 chmod +x "$SCRIPT_DIR/hooks/"*.sh 2>/dev/null || true
 
-# 6. 완료 메시지
+# 8. 완료 메시지
 echo ""
 echo -e "${GREEN}================================${NC}"
 echo -e "${GREEN}설치가 완료되었습니다!${NC}"

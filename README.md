@@ -1,6 +1,6 @@
 # Claude Code 설정 관리
 
-`~/.claude/` 설정 파일들을 Git으로 관리하고 심볼릭 링크로 연결하는 프로젝트
+`~/.claude/` 설정 파일들을 Git으로 관리하는 프로젝트
 
 ## 구조
 
@@ -11,16 +11,21 @@ claude-user-setting/
 ├── hooks/           # Claude Code hooks
 │   └── slack-notify.sh
 ├── settings.json    # Claude Code 설정
-├── skills/          # Claude Code skills
-│   └── find-skills/
-├── symlink_install.sh
-└── symlink_uninstall.sh
+├── skills/
+│   ├── common/      # 기본 스킬 (항상 설치)
+│   └── work/        # 업무용 스킬 (--work 플래그 시 설치)
+├── install.sh
+└── uninstall.sh
 ```
 
 ## 설치
 
 ```bash
+# common 스킬만 설치
 make install
+
+# work 스킬 포함 설치
+./claude-user-setting/install.sh --work
 ```
 
 설치 후 환경변수 설정:
